@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAlert } from '../components/AlertContext';
 import Spinner from '../components/Spinner';
+import api from '../utils/api';
 
 function VerifyOTPPage() {
   const [otp, setOtp] = useState(new Array(6).fill(''));
@@ -61,26 +62,13 @@ function VerifyOTPPage() {
         return;
     }
     try {
-      const response = await fetch('http://localhost:8000/api/verify-otp/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, otp: otpValue }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert(data.message, 'success');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      } else {
-        showAlert(data.error || 'An error occurred.', 'error');
-      }
+      const response = await api.post('/verify-otp/', { email, otp: otpValue });
+      showAlert(response.data.message, 'success');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.error || 'An error occurred.', 'error');
     } finally {
       setVerifyLoading(false);
     }
@@ -89,25 +77,12 @@ function VerifyOTPPage() {
   const handleResendOtp = async () => {
     setResendLoading(true);
     try {
-        const response = await fetch('http://localhost:8000/api/resend-otp/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            showAlert(data.message, 'success');
-            setTimer(600);
-            setIsResendDisabled(true);
-        } else {
-            showAlert(data.error || 'An error occurred.', 'error');
-        }
+        const response = await api.post('/resend-otp/', { email });
+        showAlert(response.data.message, 'success');
+        setTimer(600);
+        setIsResendDisabled(true);
     } catch (error) {
-        showAlert('An error occurred. Please try again.', 'error');
+        showAlert(error.response?.data?.error || 'An error occurred.', 'error');
     } finally {
       setResendLoading(false);
     }

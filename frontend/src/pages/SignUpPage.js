@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAlert } from '../components/AlertContext';
 import Spinner from '../components/Spinner';
+import api from '../utils/api';
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -23,26 +24,18 @@ export default function SignUpPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/register/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await response.json();
+      const response = await api.post('/register/', { name, email, password });
 
       if (response.status === 201) {
-        showAlert(data.message, 'success');
+        showAlert(response.data.message, 'success');
         setTimeout(() => {
           navigate('/verify-otp', { state: { email: email } });
         }, 2000);
       } else {
-        showAlert(data.error || 'An error occurred.', 'error');
+        showAlert(response.data.error || 'An error occurred.', 'error');
       }
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.error || 'An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -51,25 +44,12 @@ export default function SignUpPage() {
   const handleGoogleLogin = async (credentialResponse) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/auth/google/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ access_token: credentialResponse.credential }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
-        navigate('/dashboard');
-      } else {
-        showAlert(data.error || 'An error occurred.', 'error');
-      }
+      const response = await api.post('/auth/google/', { access_token: credentialResponse.credential });
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
+      navigate('/dashboard');
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.error || 'An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAlert } from '../components/AlertContext';
 import Spinner from '../components/Spinner';
+import api from '../utils/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -19,26 +20,13 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/password-reset-request/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert(data.message, 'success');
-        setTimeout(() => {
-          navigate('/forgot-password-verify', { state: { email: email } });
-        }, 2000);
-      } else {
-        showAlert(data.error || 'An error occurred.', 'error');
-      }
+      const response = await api.post('/password-reset-request/', { email });
+      showAlert(response.data.message, 'success');
+      setTimeout(() => {
+        navigate('/forgot-password-verify', { state: { email: email } });
+      }, 2000);
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.error || 'An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

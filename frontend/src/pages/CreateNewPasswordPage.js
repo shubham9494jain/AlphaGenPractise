@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAlert } from '../components/AlertContext';
 import Spinner from '../components/Spinner';
+import api from '../utils/api'; // Import the api instance
 
 export default function CreateNewPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
@@ -35,26 +36,17 @@ export default function CreateNewPasswordPage() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/password-reset-confirm/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, token, new_password: newPassword }),
+      const response = await api.post('/password-reset-confirm/', {
+        email,
+        token,
+        new_password: newPassword,
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert(data.message, 'success');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
-      } else {
-        showAlert(data.error || 'An error occurred.', 'error');
-      }
+      showAlert(response.data.message, 'success');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.error || 'An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

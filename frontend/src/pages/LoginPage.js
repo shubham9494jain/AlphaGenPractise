@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { useAlert } from '../components/AlertContext';
 import Spinner from '../components/Spinner';
+import api from '../utils/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -25,26 +26,13 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/token/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert('Login successful!', 'success');
-        const user = jwtDecode(data.access);
-        login(data, user);
-        navigate('/dashboard');
-      } else {
-        showAlert(data.detail || data.error || 'An error occurred.', 'error');
-      }
+      const response = await api.post('/token/', { username: email, password });
+      showAlert('Login successful!', 'success');
+      const user = jwtDecode(response.data.access);
+      login(response.data, user);
+      navigate('/dashboard');
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.detail || error.response?.data?.error || 'An error occurred.', 'error');
     } finally {
       setLoading(false);
     }
@@ -53,26 +41,13 @@ export default function LoginPage() {
   const handleGoogleLogin = async (credentialResponse) => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/auth/google/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ access_token: credentialResponse.credential }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        showAlert('Login successful!', 'success');
-        const user = jwtDecode(data.access);
-        login(data, user);
-        navigate('/dashboard');
-      } else {
-        showAlert(data.error || 'An error occurred.', 'error');
-      }
+      const response = await api.post('/auth/google/', { access_token: credentialResponse.credential });
+      showAlert('Login successful!', 'success');
+      const user = jwtDecode(response.data.access);
+      login(response.data, user);
+      navigate('/dashboard');
     } catch (error) {
-      showAlert('An error occurred. Please try again.', 'error');
+      showAlert(error.response?.data?.error || 'An error occurred. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
