@@ -22,6 +22,7 @@ export const ProjectProvider = ({ children }) => {
     const fetchProjects = useCallback(async () => {
         try {
             const response = await api.get('/projects/');
+            console.log('Projects API response data:', response.data);
             setProjects(response.data);
             
             const lastSelectedProjectId = localStorage.getItem('lastSelectedProjectId');
