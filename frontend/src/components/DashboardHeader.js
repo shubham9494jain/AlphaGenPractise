@@ -102,11 +102,6 @@ const DashboardHeader = () => {
 
       {/* Right Side Container - Simplified for mobile */}
       <div className="flex items-center space-x-2">
-        {/* Rearranged Tokens Left view */}
-        <div className="hidden md:flex flex-col items-center text-sm text-gray-500">
-          <span>Tokens left</span>
-          <span className="text-gray-700 font-semibold">100/5000</span>
-        </div>
         {/* User Avatar */}
         <ProfileMenu />
       </div>
