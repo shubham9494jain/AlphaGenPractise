@@ -5,7 +5,7 @@ import api from '../utils/api';
 const RightChatSidebar = ({ className }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const { currentProject, currentDocument, currentProjectId } = useProjects();
-  const [documents, setDocuments] = useState([]);
+  const [, setDocuments] = useState([]);
   const [chatDisabled, setChatDisabled] = useState(true);
 
   const chatHeaderText = useMemo(() => {

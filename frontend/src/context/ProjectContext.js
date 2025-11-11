@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 import { useAuth } from './AuthContext';
 
@@ -19,13 +19,7 @@ export const ProjectProvider = ({ children }) => {
         }
     };
 
-    useEffect(() => {
-        if (tokens) {
-            fetchProjects();
-        }
-    }, [tokens]);
-
-    const fetchProjects = async () => {
+    const fetchProjects = useCallback(async () => {
         try {
             const response = await api.get('/projects/');
             setProjects(response.data);
@@ -48,7 +42,14 @@ export const ProjectProvider = ({ children }) => {
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (tokens) {
+            fetchProjects();
+        }
+    }, [tokens, fetchProjects]);
+
 
     const createProject = async (title) => {
         try {
