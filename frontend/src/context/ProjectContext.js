@@ -88,6 +88,19 @@ export const ProjectProvider = ({ children }) => {
         }
     };
 
+    const refreshProject = async (projectId) => {
+        try {
+            const response = await api.get(`/projects/${projectId}/`);
+            const updatedProject = response.data;
+            setProjects(projects.map(p => (p.id === projectId ? updatedProject : p)));
+            if (currentProject && currentProject.id === projectId) {
+                _setCurrentProject(updatedProject);
+            }
+        } catch (error) {
+            console.error('Error refreshing project:', error);
+        }
+    };
+
     const contextData = {
         projects,
         currentProject,
@@ -99,6 +112,7 @@ export const ProjectProvider = ({ children }) => {
         createProject,
         updateProject,
         deleteProject,
+        refreshProject,
     };
 
     return (

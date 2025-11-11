@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useProjects } from '../context/ProjectContext';
-import api from '../utils/api';
 
 const RightChatSidebar = ({ className }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const { currentProject, currentDocument, currentProjectId } = useProjects();
-  const [, setDocuments] = useState([]);
-  const [chatDisabled, setChatDisabled] = useState(true);
+  const { currentProject, currentDocument } = useProjects();
+
+  const chatDisabled = !currentProject || !currentProject.documents || currentProject.documents.length === 0;
 
   const chatHeaderText = useMemo(() => {
     if (currentDocument && currentProject) {
@@ -16,26 +15,6 @@ const RightChatSidebar = ({ className }) => {
     }
     return 'Chat space';
   }, [currentProject, currentDocument]);
-
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      if (!currentProjectId) {
-        setDocuments([]);
-        setChatDisabled(true); // Disable chat if no project is selected
-        return;
-      }
-      try {
-        const response = await api.get(`/documents/?project=${currentProjectId}`);
-        setDocuments(response.data);
-        // Update chatDisabled based on new logic
-        setChatDisabled(response.data.length === 0 && !currentDocument);
-      } catch (error) {
-        console.error('Failed to fetch documents', error);
-        setChatDisabled(true); // Disable chat on error
-      }
-    };
-    fetchDocuments(); // Call fetchDocuments directly
-  }, [currentProjectId, currentDocument]); // Add currentDocument to dependencies
 
   return (
     <aside className={`${className} h-full bg-white rounded-t-2xl shadow-sm flex flex-col`}>

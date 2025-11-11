@@ -4,29 +4,11 @@ import api from '../utils/api';
 import { FileText, FileArchive, Trash2, Edit, Plus, Check, X } from 'lucide-react';
 
 const LeftSidebar = ({ className }) => {
-  const { projects, currentProject, setCurrentProject, createProject, updateProject, deleteProject, setCurrentDocument } = useProjects();
-  const [documents, setDocuments] = useState([]);
+  const { projects, currentProject, setCurrentProject, createProject, updateProject, deleteProject, setCurrentDocument, refreshProject } = useProjects();
   const [uploadingFiles, setUploadingFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [newProjectName, setNewProjectName] = useState('');
-
-  useEffect(() => {
-    if (currentProject) {
-      fetchDocuments(currentProject.id);
-    } else {
-      setDocuments([]);
-    }
-  }, [currentProject]);
-
-  const fetchDocuments = async (projectId) => {
-    try {
-      const response = await api.get(`/documents/?project=${projectId}`);
-      setDocuments(response.data);
-    } catch (error) {
-      console.error('Failed to fetch documents', error);
-    }
-  };
 
   const handleNewProject = async () => {
     await createProject('Untitled Project');
@@ -53,7 +35,7 @@ const LeftSidebar = ({ className }) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
       try {
         await api.delete(`/documents/${docId}/`);
-        fetchDocuments(currentProject.id);
+        await refreshProject(currentProject.id);
       } catch (error) {
         console.error('Failed to delete document', error);
       }
@@ -84,7 +66,7 @@ const LeftSidebar = ({ className }) => {
         },
       });
       setUploadingFiles(prev => prev.map(f => ({ ...f, status: 'Completed' })));
-      fetchDocuments(currentProject.id);
+      await refreshProject(currentProject.id);
     } catch (error) {
       console.error('File upload failed', error);
       setUploadingFiles(prev => prev.map(f => ({ ...f, status: 'Failed' })));
@@ -192,9 +174,9 @@ const LeftSidebar = ({ className }) => {
 
       <div className="flex-1 overflow-y-auto p-4">
         {currentProject ? (
-          documents.length > 0 ? (
+          currentProject.documents && currentProject.documents.length > 0 ? (
             <ul>
-              {documents.map(doc => (
+              {currentProject.documents.map(doc => (
                 <li key={doc.id} 
                     className="flex items-center justify-between p-2 rounded-md hover:bg-gray-100 group"
                     onClick={() => setCurrentDocument(doc)}>
