@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google fonts used by the page */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+/* Semantic design tokens used by Tailwind utility classes in JSX */
+:root {
+  --background: #ffffff;
+  --foreground: #111827; /* gray-900 */
+
+  --primary: #1d4ed8; /* blue-700 */
+  --primary-foreground: #ffffff;
+  --ring: #1d4ed8;
+
+  --accent: #f3f4f6; /* gray-100 */
+  --accent-foreground: #111827;
+
+  --muted-foreground: #6b7280; /* gray-500 */
+  --card-foreground: #111827;
+
+  --primaryText: #111827; /* main text color token */
+
+  /* Additional tokens used in pages */
+  --bgSecondary: #f7faff; /* soft subtle bg for cards/stripes */
+  --primary-bg: #eef2ff;  /* light primary-tinted section bg */
+  --placeholderText: #6b7280; /* gray-500 */
+  --text-primaryText: #111827; /* alias used once in markup */
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility to mirror the "object-fit" helper used in the HTML */
+.object-fit { object-fit: cover; }

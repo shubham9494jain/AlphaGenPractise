@@ -1,0 +1,5 @@
+/* This page is styled entirely with Tailwind utility classes.
+   Keep this file for any page-specific overrides if needed. */
+
+/* If you need the helper used in the JSX */
+.object-fit { object-fit: cover; }

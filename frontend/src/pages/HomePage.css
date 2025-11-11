@@ -1,0 +1,217 @@
+.home-container.three-column-layout {
+  display: grid;
+  grid-template-columns: 25% 40% 35%; /* Adjust column widths as needed */
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.uploaded-folders-column,
+.output-space-column,
+.chat-space-column {
+  padding: 20px;
+  border-right: 1px solid #eee;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-space-column {
+  border-right: none;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.column-header h4,
+.uploaded-folders-column h4,
+.output-space-column h4,
+.chat-space-column .chat-header h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0; /* Reset margin for h4 inside column-header */
+}
+
+.upload-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.upload-button:hover {
+  background-color: #0056b3;
+}
+
+.search-bar {
+  margin-bottom: 15px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.folder-list {
+  flex-grow: 1;
+  overflow-y: auto; /* Make folder list scrollable if it overflows */
+}
+
+.folder-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  border: 1px solid #eee; /* Add a border for visual separation */
+}
+
+.folder-item:hover {
+  background-color: #f0f0f0;
+}
+
+.folder-info {
+  display: flex;
+  align-items: center;
+}
+
+.folder-info img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.folder-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-details span:first-child {
+  font-weight: 500;
+  color: #333;
+}
+
+.folder-meta {
+  font-size: 12px;
+  color: #777;
+}
+
+.folder-meta span:not(:last-child) {
+  margin-right: 10px;
+}
+
+.folder-actions .more-options {
+  font-size: 18px;
+  font-weight: bold;
+  color: #999;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.folder-actions .more-options:hover {
+  color: #333;
+}
+
+.output-content {
+  color: #555;
+  flex-grow: 1;
+}
+
+.output-content .note {
+  font-size: 12px;
+  color: #999;
+  margin-top: 20px;
+}
+
+.chat-header {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  padding: 20px 0;
+  overflow-y: auto;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 15px;
+}
+
+.user-message {
+  justify-content: flex-end;
+}
+
+.message p {
+  padding: 10px 15px;
+  border-radius: 15px;
+  max-width: 70%;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+.user-message p {
+  background-color: #4a90e2;
+  color: #fff;
+  border-bottom-right-radius: 0;
+}
+
+.bot-message p {
+  background-color: #f1f1f1;
+  color: #333;
+  border-bottom-left-radius: 0;
+}
+
+.chat-input-area {
+  display: flex;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.chat-input-area input {
+  flex-grow: 1;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 10px 15px;
+  font-size: 14px;
+  background-color: #f9f9f9;
+}
+
+.send-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 5px;
+}
+
+.send-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+
+@media (max-width: 768px) {
+  .uploaded-folders-column,
+  .output-space-column {
+    display: none;
+  }
+
+  .chat-space-column {
+    width: 100%;
+  }
+}
