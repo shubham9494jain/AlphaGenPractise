@@ -30,10 +30,23 @@ class SharedFile(models.Model):
         return f'{self.file.name} shared with {self.user.username}'
 
 class ChatHistory(models.Model):
-    file = models.ForeignKey(Document, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='chat_histories', null=True, blank=True)
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='chat_histories', null=True, blank=True)
     message = models.TextField()
     is_user_message = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(project__isnull=False) | models.Q(document__isnull=False),
+                name='either_project_or_document_not_null'
+            )
+        ]
+
     def __str__(self):
-        return f'Chat for {self.file.name}'
+        if self.project:
+            return f'Chat for Project: {self.project.title}'
+        elif self.document:
+            return f'Chat for Document: {self.document.name}'
+        return f'Chat History {self.id}'

@@ -33,3 +33,4 @@ class ChatHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatHistory
         fields = '__all__'
+        read_only_fields = ('is_user_message', 'created_at')

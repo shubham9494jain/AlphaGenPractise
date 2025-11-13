@@ -1,14 +1,117 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from .models import Project, Document, SharedFile, ChatHistory
 from .serializers import ProjectSerializer, DocumentSerializer, SharedFileSerializer, ChatHistorySerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework import status
 import zipfile
 import os
 from django.conf import settings
+from django.db.models import Q # Added Q import
+import google.generativeai as genai # Import Gemini SDK
+import io # For handling binary data
+import base64 # For encoding/decoding binary data
+from PIL import Image # For image processing (Pillow)
+import pytesseract # For OCR
+import PyPDF2 # For PDF text extraction
+from docx import Document as DocxDocument # For DOCX text extraction
+import pandas as pd # For CSV and XLSX
+
+# Set the path to the Tesseract executable
+# This is often needed on Windows
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+# Configure Gemini API
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+
+def _extract_text_from_document(document):
+    """
+    Extracts text content from a Document object based on its content_type.
+    Supports text, images (OCR), PDFs, DOCX, CSV, and XLSX.
+    """
+    if not document or not document.file_content:
+        return ""
+
+    content_type = document.content_type
+    file_content_bytes = document.file_content
+
+    try:
+        if content_type == 'text/plain':
+            try:
+                return file_content_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                return file_content_bytes.decode('latin-1') # Fallback for other encodings
+        elif content_type.startswith('image/'):
+            # Use Pillow to open the image and pytesseract for OCR
+            image = Image.open(io.BytesIO(file_content_bytes))
+            text = pytesseract.image_to_string(image)
+            return text
+        elif content_type == 'application/pdf':
+            # Use PyPDF2 to extract text from PDF
+            reader = PyPDF2.PdfReader(io.BytesIO(file_content_bytes))
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() + "\n"
+            return text
+        elif content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            # Use python-docx to extract text from DOCX
+            doc = DocxDocument(io.BytesIO(file_content_bytes))
+            text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+            return text
+        elif content_type == 'text/csv':
+            # Use pandas to read CSV and convert to string
+            df = pd.read_csv(io.BytesIO(file_content_bytes))
+            return df.to_string()
+        elif content_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+            # Use pandas to read XLSX and convert to string
+            df = pd.read_excel(io.BytesIO(file_content_bytes))
+            return df.to_string()
+        else:
+            return f"Content of '{document.name}' (Unsupported content type: {content_type} for direct text extraction)."
+    except Exception as e:
+        return f"Error extracting text from '{document.name}' ({content_type}): {e}"
+
+def get_ai_response(user_message, project=None, document=None):
+    """
+    Generates an AI response using Google Gemini, with a fallback mechanism.
+    """
+    model_pro = genai.GenerativeModel('gemini-2.5-pro')
+    model_flash = genai.GenerativeModel('gemini-2.5-flash')
+
+    document_context = ""
+    if document:
+        document_context = _extract_text_from_document(document)
+        if document_context:
+            document_context = f"\n\nDocument Context (from {document.name}):\n{document_context}\n"
+    elif project:
+        # For project-level chat, we could potentially combine content from all documents in the project
+        # For now, we'll just indicate the project context.
+        document_context = f"\n\nProject Context (from {project.title}). No specific document selected.\n"
+
+    full_prompt = f"User query: {user_message}{document_context}\n\n"
+
+    # Add specific instructions for predefined queries
+    user_message_lower = user_message.lower()
+    if "summarize this report" in user_message_lower:
+        full_prompt += "Please provide a concise summary of the provided document/project context."
+    elif "list top holdings" in user_message_lower:
+        full_prompt += "Please list the top holdings or key entities mentioned in the provided document/project context."
+    else:
+        full_prompt += "Please answer the user's query based on the provided document/project context. If the query is unrelated to the context, state that you cannot help with it."
+
+    try:
+        # Try Gemini 1.5 Pro first
+        response = model_pro.generate_content(full_prompt)
+        return f"AI: {response.text}"
+    except Exception as e:
+        print(f"Gemini 1.5 Pro failed, trying Flash. Error: {e}")
+        # Fallback to Gemini 1.5 Flash
+        try:
+            response = model_flash.generate_content(full_prompt)
+            return f"AI: {response.text}"
+        except Exception as flash_e:
+            print(f"Gemini 1.5 Flash also failed. Error: {flash_e}")
+            return "AI: I encountered an error trying to process your request with both Gemini Pro and Flash models. Please try again later or rephrase your query."
 
 @api_view(['GET']) 
 def home_page(request):
@@ -312,4 +415,67 @@ class ChatHistoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ChatHistory.objects.filter(file__user=self.request.user)
+        queryset = ChatHistory.objects.filter(
+            Q(project__user=self.request.user) | Q(document__user=self.request.user)
+        )
+        project_id = self.request.query_params.get('project_id')
+        document_id = self.request.query_params.get('document_id')
+
+        if project_id:
+            queryset = queryset.filter(project__id=project_id)
+        if document_id:
+            queryset = queryset.filter(document__id=document_id)
+        
+        return queryset.order_by('created_at')
+
+    def create(self, request, *args, **kwargs):
+        user_message = request.data.get('message')
+        project_id = request.data.get('project_id')
+        document_id = request.data.get('document_id')
+        
+        if not user_message:
+            return Response({'error': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not project_id and not document_id:
+            return Response({'error': 'Either project_id or document_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        project = None
+        document = None
+
+        if project_id:
+            try:
+                project = Project.objects.get(id=project_id, user=request.user)
+            except Project.DoesNotExist:
+                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        if document_id:
+            try:
+                document = Document.objects.get(id=document_id, user=request.user)
+            except Document.DoesNotExist:
+                return Response({'error': 'Document not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Save user message
+        user_chat_entry = ChatHistory.objects.create(
+            project=project,
+            document=document,
+            message=user_message,
+            is_user_message=True
+        )
+        user_serializer = self.get_serializer(user_chat_entry)
+
+        # Get AI response
+        ai_response_text = get_ai_response(user_message, project, document)
+
+        # Save AI response
+        ai_chat_entry = ChatHistory.objects.create(
+            project=project,
+            document=document,
+            message=ai_response_text,
+            is_user_message=False
+        )
+        ai_serializer = self.get_serializer(ai_chat_entry)
+
+        return Response({
+            'user_message': user_serializer.data,
+            'ai_message': ai_serializer.data
+        }, status=status.HTTP_201_CREATED)
