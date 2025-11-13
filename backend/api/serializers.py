@@ -11,6 +11,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             )
         return data
 
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ['id', 'name', 'project', 'user', 'created_at', 'file_content', 'content_type']
+
 class ProjectSerializer(serializers.ModelSerializer):
     documents = DocumentSerializer(many=True, read_only=True) # Add this line
 
@@ -18,11 +23,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
         read_only_fields = ('user',)
-
-class DocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Document
-        fields = ['id', 'name', 'project', 'user', 'created_at', 'file_content', 'content_type']
 
 class SharedFileSerializer(serializers.ModelSerializer):
     class Meta:
