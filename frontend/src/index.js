@@ -10,7 +10,7 @@ import { ProjectProvider } from './context/ProjectContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId="618182948375-koor2iv79j4qs50db6p915u1soum668q.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <ProjectProvider>
           <App />

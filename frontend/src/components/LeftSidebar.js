@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useProjects } from '../context/ProjectContext';
 import api from '../utils/api';
 import { FileText, FileArchive, Trash2, Edit, Plus, Check, X } from 'lucide-react';

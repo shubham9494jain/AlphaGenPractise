@@ -19,44 +19,41 @@ import PublicLayout from './components/PublicLayout';
 import DashboardLayout from './components/DashboardLayout';
 import { AlertProvider } from './components/AlertContext';
 import Alert from './components/Alert';
-import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
-    <AuthProvider>
-      <AlertProvider>
-        <Router>
-          <main>
-            <Routes>
-              {/* Landing Page and Public Routes */}
-              <Route element={<RedirectIfAuth />}>
-                <Route element={<LandingPageLayout />}>
-                  <Route path="/" element={<LandingPage />} />
-                </Route>
-                <Route element={<PublicLayout />}>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/sign-up" element={<SignUpPage />} />
-                  <Route path="/verify-otp" element={<VerifyOTPPage />} />
-                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                  <Route path="/forgot-password-verify" element={<ForgotPasswordVerifyPage />} />
-                  <Route path="/create-new-password" element={<CreateNewPasswordPage />} />
-                </Route>
+    <AlertProvider>
+      <Router>
+        <main>
+          <Routes>
+            {/* Landing Page and Public Routes */}
+            <Route element={<RedirectIfAuth />}>
+              <Route element={<LandingPageLayout />}>
+                <Route path="/" element={<LandingPage />} />
               </Route>
+              <Route element={<PublicLayout />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/sign-up" element={<SignUpPage />} />
+                <Route path="/verify-otp" element={<VerifyOTPPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/forgot-password-verify" element={<ForgotPasswordVerifyPage />} />
+                <Route path="/create-new-password" element={<CreateNewPasswordPage />} />
+              </Route>
+            </Route>
 
-              {/* Protected Routes with DashboardLayout */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<DashboardLayout />}>
-                  <Route path="/dashboard" element={<HomePage />} />
-                  <Route path="/history" element={<HistoryPage />} />
-                </Route>
+            {/* Protected Routes with DashboardLayout */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<HomePage />} />
+                <Route path="/history" element={<HistoryPage />} />
               </Route>
-              <Route path="*" element={<h1>Not Found</h1>} />
-            </Routes>
-          </main>
-        </Router>
-        <Alert />
-      </AlertProvider>
-    </AuthProvider>
+            </Route>
+            <Route path="*" element={<h1>Not Found</h1>} />
+          </Routes>
+        </main>
+      </Router>
+      <Alert />
+    </AlertProvider>
   );
 }
 
