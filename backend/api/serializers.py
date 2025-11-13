@@ -12,6 +12,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 class ProjectSerializer(serializers.ModelSerializer):
+    documents = DocumentSerializer(many=True, read_only=True) # Add this line
+
     class Meta:
         model = Project
         fields = '__all__'
